@@ -1,23 +1,106 @@
 package uk.co.probablyfine.bytemonkey;
 
-public class AgentArguments {
-    private final long latency;
-    private final double chanceOfFailure;
-    private final int tcIndex;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
-    public AgentArguments(long latency, double activationRatio, int tcIndex) {
+public class AgentArguments {
+    private long latency;
+    private double chanceOfFailure;
+    private int tcIndex;
+    private OperationMode operationMode;
+    private FilterByClassAndMethodName filter;
+    private String configFile;
+
+    public AgentArguments(String args) {
+        Map<String, String> configuration = argumentMap(args == null ? "" : args);
+        this.latency = Long.valueOf(configuration.getOrDefault("latency","100"));
+        this.chanceOfFailure = Double.valueOf(configuration.getOrDefault("rate","1"));
+        this.tcIndex = Integer.valueOf(configuration.getOrDefault("tcindex", "-1"));
+        this.operationMode = OperationMode.fromLowerCase(configuration.getOrDefault("mode", OperationMode.FAULT.name()));
+        this.filter = new FilterByClassAndMethodName(configuration.getOrDefault("filter", ".*"));
+        this.configFile = configuration.getOrDefault("config", null);
+
+        if (configFile != null) {
+            refreshConfig();
+        }
+    }
+
+    public AgentArguments(long latency, double activationRatio, int tcIndex, String operationMode, String filter, String configFile) {
         this.latency = latency;
         this.chanceOfFailure = activationRatio;
         this.tcIndex = tcIndex;
+        this.operationMode = OperationMode.fromLowerCase(operationMode);
+        this.filter = new FilterByClassAndMethodName(filter);
+        this.configFile = configFile;
+
+        if (configFile != null) {
+            refreshConfig();
+        }
+    }
+
+    private Map<String, String> argumentMap(String args) {
+        return Arrays
+            .stream(args.split(","))
+            .map(line -> line.split(":"))
+            .filter(line -> line.length == 2)
+            .collect(Collectors.toMap(
+                    keyValue -> keyValue[0],
+                    keyValue -> keyValue[1])
+            );
+    }
+
+    private void refreshConfig() {
+        Properties p = new Properties();
+        try {
+            InputStream inputStream = new FileInputStream(configFile);
+            p.load(inputStream);
+            this.latency = Long.valueOf(p.getProperty("latency", "100"));
+            this.chanceOfFailure = Double.valueOf(p.getProperty("rate", "1"));
+            this.tcIndex = Integer.valueOf(p.getProperty("tcindex", "-1"));
+            this.operationMode = OperationMode.fromLowerCase(p.getProperty("mode", OperationMode.FAULT.name()));
+            this.filter = new FilterByClassAndMethodName(p.getProperty("filter", ".*"));
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public long latency() {
+        if (configFile != null) {
+            refreshConfig();
+        }
         return latency;
     }
 
     public double chanceOfFailure() {
+        if (configFile != null) {
+            refreshConfig();
+        }
         return chanceOfFailure;
     }
 
-    public int tcIndex() { return tcIndex; }
+    public int tcIndex() {
+        if (configFile != null) {
+            refreshConfig();
+        }
+        return tcIndex;
+    }
+
+    public OperationMode operationMode() {
+        if (configFile != null) {
+            refreshConfig();
+        }
+        return operationMode;
+    }
+
+    public FilterByClassAndMethodName filter() {
+        if (configFile != null) {
+            refreshConfig();
+        }
+        return filter;
+    }
 }

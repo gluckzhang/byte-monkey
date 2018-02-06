@@ -7,42 +7,17 @@ import jdk.internal.org.objectweb.asm.tree.*;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
 public class ByteMonkeyClassTransformer implements ClassFileTransformer {
 
     private final AddChanceOfFailure addChanceOfFailure = new AddChanceOfFailure();
-
-    private final OperationMode failureMode;
     private final AgentArguments arguments;
-    private final FilterByClassAndMethodName filter;
 
     public ByteMonkeyClassTransformer(String args) {
-        Map<String, String> configuration = argumentMap(args == null ? "" : args);
-
-        long latency = Long.valueOf(configuration.getOrDefault("latency","100"));
-        double activationRatio = Double.valueOf(configuration.getOrDefault("rate","1"));
-        int tcIndex = Integer.valueOf(configuration.getOrDefault("tcindex", "-1"));
-
-        this.arguments = new AgentArguments(latency, activationRatio, tcIndex);
-        this.failureMode = OperationMode.fromLowerCase(configuration.getOrDefault("mode", OperationMode.FAULT.name()));
-        this.filter = new FilterByClassAndMethodName(configuration.getOrDefault("filter", ".*"));
-    }
-
-    private Map<String, String> argumentMap(String args) {
-        return Arrays
-            .stream(args.split(","))
-            .map(line -> line.split(":"))
-            .filter(line -> line.length == 2)
-            .collect(Collectors.toMap(
-                keyValue -> keyValue[0],
-                keyValue -> keyValue[1])
-            );
+        this.arguments = new AgentArguments(args == null ? "" : args);
     }
 
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
@@ -57,13 +32,13 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
 
         if (cn.name.startsWith("java/") || cn.name.startsWith("sun/") || cn.name.contains("$")) return classFileBuffer;
 
-        switch (failureMode) {
+        switch (arguments.operationMode()) {
 	        case SCIRCUIT:
 	            int tcIndex = arguments.tcIndex();
 	            if (tcIndex < 0) {
                     cn.methods.stream()
                             .filter(method -> !method.name.startsWith("<"))
-                            .filter(method -> filter.matches(cn.name, method.name))
+                            .filter(method -> arguments.filter().matches(cn.name, method.name))
                             .filter(method -> method.tryCatchBlocks.size() > 0)
                             .forEach(method -> {
                                 // inject an exception in each try-catch block
@@ -78,7 +53,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                                         // so we should only inject one exception each time
                                         continue;
                                     }
-                                    InsnList newInstructions = failureMode.generateByteCode(tc, tcIndex, arguments);
+                                    InsnList newInstructions = arguments.operationMode().generateByteCode(tc, tcIndex, arguments);
                                     method.maxStack += newInstructions.size();
                                     method.instructions.insert(tc.start, newInstructions);
                                     ln = tc.start;
@@ -89,13 +64,13 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
 	                // should work together with filter
                     cn.methods.stream()
                             .filter(method -> !method.name.startsWith("<"))
-                            .filter(method -> filter.matches(cn.name, method.name))
+                            .filter(method -> arguments.filter().matches(cn.name, method.name))
                             .filter(method -> method.tryCatchBlocks.size() > 0)
                             .forEach(method -> {
                                 int index = 0;
                                 for (TryCatchBlockNode tc : method.tryCatchBlocks) {
                                     if (index == tcIndex) {
-                                        InsnList newInstructions = failureMode.generateByteCode(tc, tcIndex, arguments);
+                                        InsnList newInstructions = arguments.operationMode().generateByteCode(tc, tcIndex, arguments);
                                         method.maxStack += newInstructions.size();
                                         method.instructions.insert(tc.start, newInstructions);
                                         break;
@@ -109,12 +84,12 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
             case ANALYZETC:
 	            cn.methods.stream()
 	        	.filter(method -> !method.name.startsWith("<"))
-	        	.filter(method -> filter.matches(cn.name, method.name))
+	        	.filter(method -> arguments.filter().matches(cn.name, method.name))
 	        	.filter(method -> method.tryCatchBlocks.size() > 0)
 	        	.forEach(method -> {
                     int index = 0;
 	        		for (TryCatchBlockNode tc : method.tryCatchBlocks) {
-		        		InsnList newInstructions = failureMode.generateByteCode(tc, index, arguments);
+		        		InsnList newInstructions = arguments.operationMode().generateByteCode(tc, index, arguments);
 		        		method.maxStack += newInstructions.size();
 		        		method.instructions.insert(tc.start, newInstructions);
 		        		index ++;
@@ -124,7 +99,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
 	        default:
 	          cn.methods.stream()
 	            .filter(method -> !method.name.startsWith("<"))
-	            .filter(method -> filter.matches(cn.name, method.name))
+	            .filter(method -> arguments.filter().matches(cn.name, method.name))
 	            .forEach(method -> {
 	                createNewInstructions(method).ifPresent(newInstructions -> {
 	                    method.maxStack += newInstructions.size();
@@ -143,7 +118,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
     }
 
     private Optional<InsnList> createNewInstructions(MethodNode method) {
-        InsnList newInstructions = failureMode.generateByteCode(method, arguments);
+        InsnList newInstructions = arguments.operationMode().generateByteCode(method, arguments);
 
         return ofNullable(
             addChanceOfFailure.apply(newInstructions, arguments.chanceOfFailure())
