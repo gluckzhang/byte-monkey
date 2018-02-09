@@ -27,6 +27,7 @@
                         <index>true</index>
                         <manifestEntries>
                             <Premain-Class>uk.co.probablyfine.bytemonkey.ByteMonkeyAgent</Premain-Class>
+                            <Agent-Class>uk.co.probablyfine.bytemonkey.ByteMonkeyAgent</Agent-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
