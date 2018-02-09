@@ -35,7 +35,7 @@ public enum OperationMode {
         public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments) {
             InsnList list = new InsnList();
 
-            list.add(new LdcInsnNode(tcIndex + " @ " + tryCatchBlock.start.getLabel().toString()));
+            list.add(new LdcInsnNode(tcIndex + " @ " + tryCatchBlock.start.getLabel().toString() + "(" + tryCatchBlock.type + ")"));
             list.add(new MethodInsnNode(
                     Opcodes.INVOKESTATIC,
                     "uk/co/probablyfine/bytemonkey/LogTryCatchInfo",
