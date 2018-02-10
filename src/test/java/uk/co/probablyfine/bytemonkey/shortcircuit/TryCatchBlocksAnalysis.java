@@ -80,6 +80,8 @@ public class TryCatchBlocksAnalysis {
          int tryCatchExcutedTimes = 0;
          try {
              process = Runtime.getRuntime().exec("mvn test", null, new File(rootPath));
+             // in windows, you might need to exec mvn like this
+             // process = Runtime.getRuntime().exec("C:\\development\\apache-maven-3.5.2\\bin\\mvn.cmd test", null, new File(rootPath));
              BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
              String line = "";
              while ((line = input.readLine()) != null) {
