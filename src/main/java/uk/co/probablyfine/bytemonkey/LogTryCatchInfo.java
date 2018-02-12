@@ -2,7 +2,6 @@ package uk.co.probablyfine.bytemonkey;
 
 public class LogTryCatchInfo {
     public static void printInfo(String tcIndexInfo) {
-        int stackLengh = Thread.currentThread().getStackTrace().length;
         String executedClassName = Thread.currentThread().getStackTrace()[2].getClassName();
         String executedMethodName = Thread.currentThread().getStackTrace()[2].getMethodName();
         String testClassInfo[] = getTestClassStackIndex();
