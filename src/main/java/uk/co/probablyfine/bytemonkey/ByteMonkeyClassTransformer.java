@@ -53,7 +53,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                                         // so we should only inject one exception each time
                                         continue;
                                     }
-                                    InsnList newInstructions = arguments.operationMode().generateByteCode(tc, tcIndex, arguments);
+                                    InsnList newInstructions = arguments.operationMode().generateByteCode(tc, method, cn, tcIndex, arguments);
                                     method.maxStack += newInstructions.size();
                                     method.instructions.insert(tc.start, newInstructions);
                                     ln = tc.start;
@@ -70,7 +70,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                                 int index = 0;
                                 for (TryCatchBlockNode tc : method.tryCatchBlocks) {
                                     if (index == tcIndex) {
-                                        InsnList newInstructions = arguments.operationMode().generateByteCode(tc, tcIndex, arguments);
+                                        InsnList newInstructions = arguments.operationMode().generateByteCode(tc, method, cn, tcIndex, arguments);
                                         method.maxStack += newInstructions.size();
                                         method.instructions.insert(tc.start, newInstructions);
                                         break;
@@ -82,34 +82,35 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                 }
 	            break;
             case ANALYZETC:
+            case MEMCACHED:
 	            cn.methods.stream()
-	        	.filter(method -> !method.name.startsWith("<"))
-	        	.filter(method -> arguments.filter().matches(cn.name, method.name))
-	        	.filter(method -> method.tryCatchBlocks.size() > 0)
-	        	.forEach(method -> {
-                    int index = 0;
-	        		for (TryCatchBlockNode tc : method.tryCatchBlocks) {
-		        		InsnList newInstructions = arguments.operationMode().generateByteCode(tc, index, arguments);
-		        		method.maxStack += newInstructions.size();
-		        		method.instructions.insert(tc.start, newInstructions);
-		        		index ++;
-	        		}
-	        	});
+                    .filter(method -> !method.name.startsWith("<"))
+                    .filter(method -> arguments.filter().matches(cn.name, method.name))
+                    .filter(method -> method.tryCatchBlocks.size() > 0)
+                    .forEach(method -> {
+                        int index = 0;
+                        for (TryCatchBlockNode tc : method.tryCatchBlocks) {
+                            InsnList newInstructions = arguments.operationMode().generateByteCode(tc, method, cn, index, arguments);
+                            method.maxStack += newInstructions.size();
+                            method.instructions.insert(tc.start, newInstructions);
+                            index ++;
+                        }
+                    });
 	        	break;
 	        default:
-	          cn.methods.stream()
-	            .filter(method -> !method.name.startsWith("<"))
-	            .filter(method -> arguments.filter().matches(cn.name, method.name))
-	            .forEach(method -> {
-	                createNewInstructions(method).ifPresent(newInstructions -> {
-	                    method.maxStack += newInstructions.size();
-	                    method.instructions.insertBefore(
-	                        method.instructions.getFirst(),
-	                        newInstructions
-	                    );
-	                });
-	            });
-	        	break;
+	            cn.methods.stream()
+                    .filter(method -> !method.name.startsWith("<"))
+                    .filter(method -> arguments.filter().matches(cn.name, method.name))
+                    .forEach(method -> {
+                        createNewInstructions(method).ifPresent(newInstructions -> {
+                            method.maxStack += newInstructions.size();
+                            method.instructions.insertBefore(
+                                method.instructions.getFirst(),
+                                newInstructions
+                            );
+                        });
+                    });
+	            break;
         }
 
         final ClassWriter cw = new ClassWriter(0);
@@ -124,5 +125,4 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
             addChanceOfFailure.apply(newInstructions, arguments.chanceOfFailure())
         );
     }
-
 }

@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 
 public enum OperationMode {
 	SCIRCUIT {
-        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments) {
+        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
 			InsnList list = new InsnList();
 
             list.add(new LdcInsnNode(tryCatchBlock.type));
@@ -32,7 +32,7 @@ public enum OperationMode {
 		}
 	},
     ANALYZETC {
-        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments) {
+        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
             InsnList list = new InsnList();
 
             list.add(new LdcInsnNode(tcIndex + " @ " + tryCatchBlock.start.getLabel().toString() + "(" + tryCatchBlock.type + ")"));
@@ -43,6 +43,37 @@ public enum OperationMode {
                     "(Ljava/lang/String;)V",
                     false // this is not a method on an interface
             ));
+
+            return list;
+        }
+
+        @Override
+        public InsnList generateByteCode(MethodNode method, AgentArguments arguments) {
+            // won't use this method
+            return null;
+        }
+    },
+    MEMCACHED {
+        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
+            InsnList list = new InsnList();
+
+            String tcIndexInfo = String.format("%s@%s(%s),%s,%s", tcIndex, tryCatchBlock.start.getLabel().toString(), tryCatchBlock.type, methodNode.name, classNode.name);
+            list.add(new LdcInsnNode(tcIndexInfo));
+            list.add(new LdcInsnNode(tryCatchBlock.type));
+            list.add(new LdcInsnNode(arguments.memcachedHost()));
+            list.add(new IntInsnNode(Opcodes.SIPUSH ,arguments.memcachedPort()));
+            list.add(new MethodInsnNode(
+                    Opcodes.INVOKESTATIC,
+                    "uk/co/probablyfine/bytemonkey/ChaosMonkey",
+                    "doChaos",
+                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V",
+                    false // this is not a method on an interface
+            ));
+
+//            Runnable registerTask = () -> {ChaosMonkey.registerTrycatchInfo(arguments, tcIndexInfo, "off");};
+//            Thread registerThread = new Thread(registerTask);
+//            registerThread.start();
+            ChaosMonkey.registerTrycatchInfo(arguments, tcIndexInfo, "off");
 
             return list;
         }
@@ -64,7 +95,7 @@ public enum OperationMode {
             return list;
         }
         @Override
-        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments) {
+        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
         	// won't use this method
         	return null;
         }
@@ -92,7 +123,7 @@ public enum OperationMode {
             return list;
         }
         @Override
-        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments) {
+        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
         	// won't use this method
         	return null;
         }
@@ -117,7 +148,7 @@ public enum OperationMode {
             return list;
         }
         @Override
-        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments) {
+        public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
         	// won't use this method
         	return null;
         }
@@ -128,5 +159,5 @@ public enum OperationMode {
     }
 
     public abstract InsnList generateByteCode(MethodNode method, AgentArguments arguments);
-    public abstract InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, int tcIndex, AgentArguments arguments);
+    public abstract InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments);
 }
