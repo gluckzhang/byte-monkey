@@ -17,6 +17,7 @@ public class AgentArguments {
     private String memcachedHost;
     private int memcachedPort;
     private String csvfilepath;
+    private String defaultMode;
 
     public AgentArguments(String args) {
         Map<String, String> configuration = argumentMap(args == null ? "" : args);
@@ -29,6 +30,7 @@ public class AgentArguments {
         this.memcachedHost = configuration.getOrDefault("memcachedHost", "localhost");
         this.memcachedPort = Integer.valueOf(configuration.getOrDefault("memcachedPort", "11211"));
         this.csvfilepath = configuration.getOrDefault("csvfilepath", "chaosMonkey.csv");
+        this.csvfilepath = configuration.getOrDefault("defaultMode", "off");
 
         if (this.configFile != null) {
             refreshConfig();
@@ -72,6 +74,7 @@ public class AgentArguments {
             this.memcachedHost = p.getProperty("memcachedHost", "localhost");
             this.memcachedPort = Integer.valueOf(p.getProperty("memcachedPort", "11211"));
             this.csvfilepath = p.getProperty("csvfilepath", "chaosMonkey.csv");
+            this.defaultMode = p.getProperty("defaultMode", "off");
             inputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -132,5 +135,12 @@ public class AgentArguments {
             refreshConfig();
         }
         return csvfilepath;
+    }
+
+    public String defaultMode() {
+        if (this.configFile != null) {
+            refreshConfig();
+        }
+        return defaultMode;
     }
 }

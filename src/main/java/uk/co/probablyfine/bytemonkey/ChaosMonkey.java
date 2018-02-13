@@ -11,7 +11,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.TimeoutException;
 
 public class ChaosMonkey {
-    public static void doChaos(String tcIndexInfo, String tcType, String memcachedHost, int memcachedPort) throws Throwable {
+    public static void doChaos(String tcIndexInfo, String tcType, String memcachedHost, int memcachedPort, String defaultMode) throws Throwable {
         String chaosMode = getMode(tcIndexInfo, memcachedHost, memcachedPort);
         if (chaosMode == null) {
             System.out.println("INFO ByteMonkey unregistered try catch found");
@@ -100,6 +100,8 @@ public class ChaosMonkey {
         }
 
         // register to memcached server
+        // lots of timeout issues so we only do the file registeration first
+        // then the controller will register all the info in memcached server
         /*
         try {
             MemcachedClient client = new XMemcachedClient(arguments.memcachedHost(), arguments.memcachedPort());

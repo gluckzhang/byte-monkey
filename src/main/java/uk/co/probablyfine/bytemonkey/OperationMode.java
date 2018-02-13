@@ -62,18 +62,19 @@ public enum OperationMode {
             list.add(new LdcInsnNode(tryCatchBlock.type));
             list.add(new LdcInsnNode(arguments.memcachedHost()));
             list.add(new IntInsnNode(Opcodes.SIPUSH ,arguments.memcachedPort()));
+            list.add(new LdcInsnNode(arguments.defaultMode()));
             list.add(new MethodInsnNode(
                     Opcodes.INVOKESTATIC,
                     "uk/co/probablyfine/bytemonkey/ChaosMonkey",
                     "doChaos",
-                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V",
+                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I;Ljava/lang/String)V",
                     false // this is not a method on an interface
             ));
 
 //            Runnable registerTask = () -> {ChaosMonkey.registerTrycatchInfo(arguments, tcIndexInfo, "off");};
 //            Thread registerThread = new Thread(registerTask);
 //            registerThread.start();
-            ChaosMonkey.registerTrycatchInfo(arguments, tcIndexInfo, "off");
+            ChaosMonkey.registerTrycatchInfo(arguments, tcIndexInfo, arguments.defaultMode());
 
             return list;
         }
