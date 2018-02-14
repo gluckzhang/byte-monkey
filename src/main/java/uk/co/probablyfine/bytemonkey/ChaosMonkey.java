@@ -11,12 +11,13 @@ import java.io.PrintWriter;
 import java.util.concurrent.TimeoutException;
 
 public class ChaosMonkey {
-    public static void doChaos(String tcIndexInfo, String tcType, String memcachedHost, int memcachedPort, String defaultMode) throws Throwable {
+    public static void doChaos(String tcIndexInfo, String tcType, String defaultMode, String memcachedHost, int memcachedPort) throws Throwable {
         String chaosMode = getMode(tcIndexInfo, memcachedHost, memcachedPort);
         if (chaosMode == null) {
-            System.out.println("INFO ByteMonkey unregistered try catch found");
-            return;
-        } else if (chaosMode.equals("analyze")) {
+            System.out.println("INFO ByteMonkey unregistered try catch found, use default mode: " + defaultMode);
+            chaosMode = defaultMode;
+        }
+        if (chaosMode.equals("analyze")) {
             printInfo(tcIndexInfo);
         } else if (chaosMode.equals("inject")) {
             throw throwOrDefault(tcIndexInfo, tcType);

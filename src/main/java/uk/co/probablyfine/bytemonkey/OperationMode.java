@@ -60,14 +60,14 @@ public enum OperationMode {
             String tcIndexInfo = String.format("%s@%s(%s),%s,%s", tcIndex, tryCatchBlock.start.getLabel().toString(), tryCatchBlock.type, methodNode.name, classNode.name);
             list.add(new LdcInsnNode(tcIndexInfo));
             list.add(new LdcInsnNode(tryCatchBlock.type));
+            list.add(new LdcInsnNode(arguments.defaultMode()));
             list.add(new LdcInsnNode(arguments.memcachedHost()));
             list.add(new IntInsnNode(Opcodes.SIPUSH ,arguments.memcachedPort()));
-            list.add(new LdcInsnNode(arguments.defaultMode()));
             list.add(new MethodInsnNode(
                     Opcodes.INVOKESTATIC,
                     "uk/co/probablyfine/bytemonkey/ChaosMonkey",
                     "doChaos",
-                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I;Ljava/lang/String)V",
+                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)V",
                     false // this is not a method on an interface
             ));
 
