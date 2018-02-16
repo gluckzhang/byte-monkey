@@ -30,7 +30,7 @@ public class AgentArguments {
         this.memcachedHost = configuration.getOrDefault("memcachedHost", "localhost");
         this.memcachedPort = Integer.valueOf(configuration.getOrDefault("memcachedPort", "11211"));
         this.csvfilepath = configuration.getOrDefault("csvfilepath", "chaosMonkey.csv");
-        this.csvfilepath = configuration.getOrDefault("defaultMode", "off");
+        this.defaultMode = configuration.getOrDefault("defaultMode", "off");
 
         if (this.configFile != null) {
             refreshConfig();
