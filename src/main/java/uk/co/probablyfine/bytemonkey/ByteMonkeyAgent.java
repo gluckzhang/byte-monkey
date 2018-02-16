@@ -1,11 +1,21 @@
 package uk.co.probablyfine.bytemonkey;
 
+import org.apache.log4j.PropertyConfigurator;
+
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.util.Properties;
 
 public class ByteMonkeyAgent {
 
     public static void premain(String agentArguments, Instrumentation instrumentation) throws UnmodifiableClassException {
+        // PropertyConfigurator.configure("log4j.properties");
+        // Manually turn off the memcached logger, until I find the corresponding path in jar file
+        Properties properties = new Properties();
+        properties.setProperty("log4j.logger.net.rubyeye.xmemcached", "OFF");
+        properties.setProperty("log4j.logger.com.google.code.yanf4j", "OFF");
+        PropertyConfigurator.configure(properties);
+
         ByteMonkeyClassTransformer transformer = new ByteMonkeyClassTransformer(agentArguments);
         instrumentation.addTransformer(transformer);
 
