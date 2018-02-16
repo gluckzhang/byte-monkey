@@ -2,21 +2,20 @@ package uk.co.probablyfine.bytemonkey;
 
 public class LogTryCatchInfo {
     public static void printInfo(String tcIndexInfo) {
-        String executedClassName = Thread.currentThread().getStackTrace()[2].getClassName();
-        String executedMethodName = Thread.currentThread().getStackTrace()[2].getMethodName();
         String testClassInfo[] = getTestClassStackIndex();
         String testClassName = testClassInfo[0];
         String testMethodName = testClassInfo[1];
 
         // TryCatch Info
-        System.out.println(String.format("INFO ByteMonkey try catch index %s, %s @ %s", tcIndexInfo, executedMethodName, executedClassName));
-        // Testcase Info
-        System.out.println(String.format("INFO ByteMonkey testCase: %s @ %s", testMethodName, testClassName));
-        System.out.println("----");
+        System.out.println(String.format("INFO ByteMonkey try catch index %s", tcIndexInfo));
+        if (!testClassName.equals("NOT TEST CLASS")) {
+            // Testcase Info
+            System.out.println(String.format("INFO ByteMonkey testCase: %s @ %s", testMethodName, testClassName));
+        }
     }
 
     public static String[] getTestClassStackIndex() {
-        String result[] = {"NOT TEST CLASS", "KNOWN METHOD"};
+        String result[] = {"NOT TEST CLASS", "UNKNOWN METHOD"};
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         int stackLength = stackTrace.length;
         String className = null;

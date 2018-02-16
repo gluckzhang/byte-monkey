@@ -35,7 +35,8 @@ public enum OperationMode {
         public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
             InsnList list = new InsnList();
 
-            list.add(new LdcInsnNode(tcIndex + " @ " + tryCatchBlock.start.getLabel().toString() + "(" + tryCatchBlock.type + ")"));
+            String tcIndexInfo = String.format("%s@%s(%s),%s,%s", tcIndex, tryCatchBlock.start.getLabel().toString(), tryCatchBlock.type, methodNode.name, classNode.name);
+            list.add(new LdcInsnNode(tcIndexInfo));
             list.add(new MethodInsnNode(
                     Opcodes.INVOKESTATIC,
                     "uk/co/probablyfine/bytemonkey/LogTryCatchInfo",
@@ -43,6 +44,8 @@ public enum OperationMode {
                     "(Ljava/lang/String;)V",
                     false // this is not a method on an interface
             ));
+
+            ChaosMonkey.registerTrycatchInfo(arguments, tcIndexInfo, arguments.defaultMode());
 
             return list;
         }
