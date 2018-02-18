@@ -24,6 +24,10 @@ public class ChaosMonkey {
         }
     }
 
+    public static void throwException(String tcIndexInfo, String tcType) throws Throwable {
+        throw throwOrDefault(tcIndexInfo, tcType);
+    }
+
     public static String getMode(String tcIndexInfo, String memcachedHost, int memcachedPort) {
         String mode = null;
 
@@ -65,8 +69,9 @@ public class ChaosMonkey {
         new Throwable().printStackTrace();
 
         String dotSeparatedClassName = tcType.replace("/", ".");
+        Class<?> p = null;
         try {
-            Class<?> p = Class.forName(dotSeparatedClassName, false, ClassLoader.getSystemClassLoader());
+            p = Class.forName(dotSeparatedClassName, false, ClassLoader.getSystemClassLoader());
 
             if (Throwable.class.isAssignableFrom(p)) {
                 return (Throwable) p.newInstance();
@@ -75,8 +80,16 @@ public class ChaosMonkey {
             }
         } catch (IllegalAccessException e) {
             return new ByteMonkeyException(tcType);
-        } catch (Exception e) {
-            return new RuntimeException(tcType);
+        } catch (InstantiationException e) {
+            // the target exception has no default constructor
+            // since lots of exception has a constructor with a string parameter, try it again
+            try {
+                return (Throwable) p.getConstructor(String.class).newInstance("INJECTED BY CHAOS MONKEY: " + dotSeparatedClassName);
+            } catch (Exception e1) {
+                return new ByteMonkeyException(tcType);
+            }
+        } catch (ClassNotFoundException e) {
+            return new ByteMonkeyException(tcType);
         }
     }
 

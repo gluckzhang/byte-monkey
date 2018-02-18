@@ -13,13 +13,15 @@ public enum OperationMode {
         public InsnList generateByteCode(TryCatchBlockNode tryCatchBlock, MethodNode methodNode, ClassNode classNode, int tcIndex, AgentArguments arguments) {
 			InsnList list = new InsnList();
 
+            String tcIndexInfo = String.format("%s@%s(%s),%s,%s", tcIndex, tryCatchBlock.start.getLabel().toString(), tryCatchBlock.type, methodNode.name, classNode.name);
+            list.add(new LdcInsnNode(tcIndexInfo));
             list.add(new LdcInsnNode(tryCatchBlock.type));
             list.add(new MethodInsnNode(
-                Opcodes.INVOKESTATIC,
-                "uk/co/probablyfine/bytemonkey/DirectlyThrowException",
-                "throwDirectly",
-                "(Ljava/lang/String;)V",
-                false // this is not a method on an interface
+                    Opcodes.INVOKESTATIC,
+                    "uk/co/probablyfine/bytemonkey/ChaosMonkey",
+                    "throwException",
+                    "(Ljava/lang/String;Ljava/lang/String;)V",
+                    false // this is not a method on an interface
             ));
             
             return list;
