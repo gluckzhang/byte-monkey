@@ -48,6 +48,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                                 LabelNode ln = method.tryCatchBlocks.get(0).start;
                                 int i = 0;
                                 for (TryCatchBlockNode tc : method.tryCatchBlocks) {
+                                    if (tc.type.equals("null")) continue;
                                     if (ln == tc.start && i > 0) {
                                         // if two try-catch-block-nodes have the same "start", it indicates that it's one try block with multiple catch
                                         // so we should only inject one exception each time
@@ -69,6 +70,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                             .forEach(method -> {
                                 int index = 0;
                                 for (TryCatchBlockNode tc : method.tryCatchBlocks) {
+                                    if (tc.type.equals("null")) continue;
                                     if (index == tcIndex) {
                                         InsnList newInstructions = arguments.operationMode().generateByteCode(tc, method, cn, tcIndex, arguments);
                                         method.maxStack += newInstructions.size();
@@ -90,6 +92,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
                     .forEach(method -> {
                         int index = 0;
                         for (TryCatchBlockNode tc : method.tryCatchBlocks) {
+                            if (tc.type.equals("null")) continue; // "synchronized" keyword or try-finally block might make the type empty
                             InsnList newInstructions = arguments.operationMode().generateByteCode(tc, method, cn, index, arguments);
                             method.maxStack += newInstructions.size();
                             method.instructions.insert(tc.start, newInstructions);
