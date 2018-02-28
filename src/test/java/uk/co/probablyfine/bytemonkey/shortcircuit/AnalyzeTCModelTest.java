@@ -10,5 +10,6 @@ public class AnalyzeTCModelTest {
 
         TryCatchTestObject tcTest = new TryCatchTestObject();
         System.out.println(tcTest.multipleTryCatch());
+        System.out.println(tcTest.nestedTryCatch());
     }
 }

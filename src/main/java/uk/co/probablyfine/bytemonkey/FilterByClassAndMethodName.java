@@ -7,7 +7,7 @@ public class FilterByClassAndMethodName {
     private final Pattern pattern;
 
     public FilterByClassAndMethodName(String regex) {
-        this.pattern = Pattern.compile(regex);
+        this.pattern = Pattern.compile(regex.replace("$", "\\$"));
     }
 
     public boolean matches(String className, String methodName) {

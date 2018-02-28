@@ -30,7 +30,7 @@ public class ByteMonkeyClassTransformer implements ClassFileTransformer {
         ClassNode cn = new ClassNode();
         new ClassReader(classFileBuffer).accept(cn, 0);
 
-        if (cn.name.startsWith("java/") || cn.name.startsWith("sun/") || cn.name.contains("$")) return classFileBuffer;
+        if (cn.name.startsWith("java/") || cn.name.startsWith("sun/") || cn.name.startsWith("uk/co/probablyfine/bytemonkey/ChaosMonkey")) return classFileBuffer;
 
         switch (arguments.operationMode()) {
 	        case SCIRCUIT:

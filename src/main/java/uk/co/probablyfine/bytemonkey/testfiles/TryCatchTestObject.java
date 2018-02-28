@@ -76,6 +76,27 @@ public class TryCatchTestObject {
         }
     }
 
+    public String nestedTryCatch() {
+        StringBuilder result = new StringBuilder();
+        try {
+            // 1st try-catch block
+            result.append("_1st line in 1st tc");
+            String arg = getArgument();
+
+            try {
+                // nested try-catch block
+                result.append("_1st line in the nested tc");
+                String key = format(arg);
+            } catch (MissingPropertyException e) {
+                result.append("_mpe in the nested tc");
+            }
+        } catch (IOException e) {
+            result.append("_ioe in 1st tc");
+        }
+
+        return result.toString();
+    }
+
     private String getProperty(String key, Boolean isCacheActivated) throws MissingPropertyException {
         return null;
     }

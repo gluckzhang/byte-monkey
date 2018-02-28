@@ -25,7 +25,7 @@ public class ByteMonkeyAgent {
             for (int i = 0; i < cl.length; i++) {
                 String className = cl[i].getName();
                 String prefix = className.split("//.")[0];
-                if (prefix.contains("java") || prefix.contains("sun") || prefix.startsWith("[") || className.contains("$")) {
+                if (prefix.contains("java") || prefix.contains("sun") || prefix.startsWith("[")) {
                     continue;
                 }
 
