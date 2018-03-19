@@ -70,12 +70,14 @@ public class ChaosMonkey {
         // TryCatch Injection Info
         System.out.println(String.format("INFO ByteMonkey injection! %s, %s @ %s", tcIndexInfo, executedMethodName, executedClassName));
         System.out.println("INFO ByteMonkey StackTrace Info:");
-        new Throwable().printStackTrace();
+        // new Throwable().printStackTrace();
 
         String dotSeparatedClassName = tcType.replace("/", ".");
         Class<?> p = null;
         try {
-            p = Class.forName(dotSeparatedClassName, false, ClassLoader.getSystemClassLoader());
+            // p = Class.forName(dotSeparatedClassName, false, ClassLoader.getSystemClassLoader());
+            // use the following instead, sometimes we cannot load the specific classes if we directly use system class loader
+            p = Thread.currentThread().getContextClassLoader().loadClass(dotSeparatedClassName);
 
             if (Throwable.class.isAssignableFrom(p)) {
                 return (Throwable) p.newInstance();
