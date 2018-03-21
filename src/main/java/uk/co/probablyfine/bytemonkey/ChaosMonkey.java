@@ -69,7 +69,7 @@ public class ChaosMonkey {
 
         // TryCatch Injection Info
         System.out.println(String.format("INFO ByteMonkey injection! %s, %s @ %s", tcIndexInfo, executedMethodName, executedClassName));
-        System.out.println("INFO ByteMonkey StackTrace Info:");
+        // System.out.println("INFO ByteMonkey StackTrace Info:");
         // new Throwable().printStackTrace();
 
         String dotSeparatedClassName = tcType.replace("/", ".");
